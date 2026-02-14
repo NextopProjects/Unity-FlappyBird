@@ -1101,9 +1101,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e999ec373de05ee4d879927d8dd82534, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager
-  scoreText: {fileID: 0}
-  gameOverPanel: {fileID: 0}
-  restartButton: {fileID: 0}
+  scoreText: {fileID: 597381609}
+  restartButton: {fileID: 1345552290}
 --- !u!4 &1526554383
 Transform:
   m_ObjectHideFlags: 0
