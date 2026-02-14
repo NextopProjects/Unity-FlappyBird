@@ -1,0 +1,26 @@
+using UnityEngine;
+
+public class PlayerController : MonoBehaviour
+{
+    private Rigidbody _rigidbody;
+    public float jumpForce = 5f;
+    
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        _rigidbody = GetComponent<Rigidbody>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+    }
+
+    void OnJump()
+    {
+        // 위로 이동에 대한 action
+        Debug.Log("Jump");
+        _rigidbody.linearVelocity = Vector3.up * jumpForce;
+        // _rigidbody.AddForce(Vector3.up * 5f, ForceMode.VelocityChange);
+    }
+}
