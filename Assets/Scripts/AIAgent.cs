@@ -3,185 +3,159 @@ using System.Collections.Generic;
 
 public class AIAgent : MonoBehaviour
 {
-    // ===== Q-learning 데이터 (씬 재로드 시에도 유지) =====
-    private static Dictionary<string, float[]> qTable = new Dictionary<string, float[]>();
+    /*
+        static 데이터는 씬이 다시 로드되어도 유지된다.
+        학습 정보는 계속 누적되어야 하므로 static으로 선언한다.
+    */
+
+    // 상태별 행동 점수 저장 테이블
+    private static Dictionary<string, float[]> qTable =
+        new Dictionary<string, float[]>();
+
+    // 총 학습 횟수
     private static int totalEpisodes = 0;
-    private static int bestScore = 0;
+
+    // 탐험 확률 (점점 감소)
     private static float epsilon = 1.0f;
-    
-    // ===== 학습 파라미터 =====
-    public float learningRate = 0.2f;        // 학습률 증가 (더 빠른 학습)
-    public float discountFactor = 0.99f;     // 할인율 증가 (미래 보상 중시)
+
+    // 학습 설정값
+    public float learningRate = 0.1f;
+    public float discountFactor = 0.9f;
     public float epsilonDecay = 0.995f;
-    public float minEpsilon = 0.01f;
-    
-    // ===== 게임 참조 =====
+
     private Rigidbody rb;
-    private GameManager gameManager;
-    
-    // ===== 현재 에피소드 데이터 =====
+
+    // 이전 상태와 행동은 보상 계산에 필요하다
     private string previousState;
     private int previousAction;
+
     private bool episodeEnded = false;
-    
-    // ===== UI 접근용 =====
+
+    // GameManager가 읽기만 할 수 있도록 제공
     public int episodeCount => totalEpisodes;
-    public int bestScoreValue => bestScore;
     public float epsilonValue => epsilon;
     public int qTableSize => qTable.Count;
 
     void Start()
     {
         rb = GetComponent<Rigidbody>();
-        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
-        episodeEnded = false;
     }
 
     void FixedUpdate()
     {
+        // 게임이 끝났으면 학습 중단
         if (episodeEnded) return;
-        
-        // 상태 관찰
+
+        // 현재 상태 계산
         string currentState = GetState();
-        
-        // Q-Table 초기화
+
+        // 처음 보는 상태라면 초기화
         if (!qTable.ContainsKey(currentState))
-        {
             qTable[currentState] = new float[2];
-        }
-        
+
         // 행동 선택
         int action = ChooseAction(currentState);
-        
-        // 행동 실행
+
+        // 행동 실행 (1이면 점프)
         if (action == 1)
-        {
             rb.linearVelocity = Vector3.up * 5f;
-        }
-        
-        // Q-learning 업데이트 (매 프레임 - 학습 정확도 향상)
-        if (previousState != null)
-        {
-            float reward = CalculateReward();
-            UpdateQValue(previousState, previousAction, reward, currentState);
-        }
-        
-        // 상태 저장
+
+        // 다음 보상 계산을 위해 저장
         previousState = currentState;
         previousAction = action;
     }
 
+    // 살아있는 동안 작은 보상
+    public void AddLivingReward(float reward = 0.1f)
+    {
+        if (previousState == null) return;
+
+        UpdateQ(previousState, previousAction, reward, GetState());
+    }
+
+    // 파이프 통과 보상
+    public void OnPipePass()
+    {
+        if (previousState == null) return;
+
+        UpdateQ(previousState, previousAction, 10f, GetState());
+    }
+
+    // 충돌 패널티
+    public void OnCollision()
+    {
+        if (previousState != null)
+            UpdateQ(previousState, previousAction, -10f, previousState);
+
+        episodeEnded = true;
+        totalEpisodes++;
+        epsilon *= epsilonDecay;
+    }
+
+    // 현재 상태를 문자열로 표현
     string GetState()
     {
         GameObject pipe = FindClosestPipe();
-        
-        // 상태 공간 세분화 (정확도 향상)
-        int playerY = Mathf.Clamp(Mathf.FloorToInt((transform.position.y + 5f) / 1.0f), 0, 9);
-        int velocity = Mathf.Clamp(Mathf.FloorToInt((rb.linearVelocity.y + 10f) / 2.5f), 0, 7);
-        
-        int pipeDist = 8;
-        int pipeHeight = 8;
-        
+
+        int playerY = Mathf.RoundToInt(transform.position.y);
+        int pipeDist = 0;
+        int pipeHeight = 0;
+
         if (pipe != null)
         {
-            float dist = pipe.transform.position.x - transform.position.x;
-            pipeDist = Mathf.Clamp(Mathf.FloorToInt(dist / 2f), 0, 7);
-            
-            float heightDiff = pipe.transform.position.y - transform.position.y;
-            pipeHeight = Mathf.Clamp(Mathf.FloorToInt((heightDiff + 8f) / 2f), 0, 7);
+            pipeDist = Mathf.RoundToInt(
+                pipe.transform.position.x - transform.position.x);
+
+            pipeHeight = Mathf.RoundToInt(
+                pipe.transform.position.y - transform.position.y);
         }
-        
-        return $"{playerY}_{velocity}_{pipeDist}_{pipeHeight}";
+
+        return playerY + "_" + pipeDist + "_" + pipeHeight;
     }
 
+    // 가장 가까운 파이프 탐색
     GameObject FindClosestPipe()
     {
         PipeMovement[] pipes = FindObjectsOfType<PipeMovement>();
+
         GameObject closest = null;
         float minDist = Mathf.Infinity;
 
         foreach (var pipe in pipes)
         {
-            if (pipe.transform.position.x < transform.position.x - 1.0f) continue;
-
             float dist = pipe.transform.position.x - transform.position.x;
-            if (dist < minDist)
+
+            if (dist > 0 && dist < minDist)
             {
                 minDist = dist;
                 closest = pipe.gameObject;
             }
         }
+
         return closest;
     }
 
+    // epsilon-greedy 방식으로 행동 선택
     int ChooseAction(string state)
     {
         if (Random.value < epsilon)
-        {
-            return Random.value < 0.5f ? 0 : 1;
-        }
-        else
-        {
-            float[] qValues = qTable[state];
-            return qValues[0] > qValues[1] ? 0 : 1;
-        }
+            return Random.Range(0, 2);
+
+        float[] q = qTable[state];
+        return q[0] > q[1] ? 0 : 1;
     }
 
-    float CalculateReward()
-    {
-        float reward = 0.1f;  // 생존 보상
-        
-        // 높이 페널티 (중앙 유지 유도)
-        float yPos = transform.position.y;
-        if (Mathf.Abs(yPos) > 3f)
-        {
-            reward -= 0.3f;  // 너무 위/아래 있으면 큰 페널티
-        }
-        
-        return reward;
-    }
-
-    void UpdateQValue(string state, int action, float reward, string nextState)
+    // Q값 업데이트
+    void UpdateQ(string state, int action, float reward, string nextState)
     {
         if (!qTable.ContainsKey(nextState))
-        {
             qTable[nextState] = new float[2];
-        }
-        
+
         float currentQ = qTable[state][action];
         float maxNextQ = Mathf.Max(qTable[nextState][0], qTable[nextState][1]);
-        
-        // Q(s,a) ← Q(s,a) + α[r + γ·max Q(s',a') - Q(s,a)]
-        qTable[state][action] = currentQ + learningRate * (reward + discountFactor * maxNextQ - currentQ);
-    }
 
-    public void OnPipePass()
-    {
-        if (previousState != null && qTable.ContainsKey(previousState))
-        {
-            UpdateQValue(previousState, previousAction, 15.0f, GetState());  // 보상 증가
-        }
-    }
-
-    public void OnCollision()
-    {
-        if (episodeEnded) return;
-        episodeEnded = true;
-        
-        if (previousState != null && qTable.ContainsKey(previousState))
-        {
-            UpdateQValue(previousState, previousAction, -20.0f, previousState);  // 페널티 증가
-        }
-        
-        totalEpisodes++;
-        epsilon = Mathf.Max(minEpsilon, epsilon * epsilonDecay);
-        
-        int currentScore = gameManager.score;  // 리플렉션 제거
-        if (currentScore > bestScore)
-        {
-            bestScore = currentScore;
-        }
-        
-        Debug.Log($"[Episode {totalEpisodes}] Score: {currentScore} | Best: {bestScore} | Epsilon: {epsilon:F3}");
+        qTable[state][action] =
+            currentQ + learningRate *
+            (reward + discountFactor * maxNextQ - currentQ);
     }
 }

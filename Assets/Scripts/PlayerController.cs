@@ -9,27 +9,28 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
+        _gameManager = GameObject.Find("GameManager")
+            .GetComponent<GameManager>();
         _aiAgent = GetComponent<AIAgent>();
     }
-    
+
+    // 충돌 시 게임 종료
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("게임 오버!");
-        
-        // AI 에이전트에게 충돌 알림
         _aiAgent.OnCollision();
-        
-        // 게임 매니저에게 게임오버 알림
         _gameManager.GameOver();
     }
 
+    // 파이프 통과 시 점수와 보상 처리
     private void OnTriggerEnter(Collider other)
     {
-        // 점수 추가
         _gameManager.AddScore();
-        
-        // AI 에이전트에게 파이프 통과 보상 전달
         _aiAgent.OnPipePass();
+    }
+
+    // 살아있는 동안 작은 보상 제공
+    void FixedUpdate()
+    {
+        _aiAgent.AddLivingReward();
     }
 }

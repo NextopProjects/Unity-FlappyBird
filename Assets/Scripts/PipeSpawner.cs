@@ -22,7 +22,7 @@ public class PipeSpawner : MonoBehaviour
             // TODO: 랜덤하게 y축을 바꿔서 생성하도록 해봅시다.
             // HINT Random.Range
             // Pipe 생성한 코드를 작성
-            Instantiate(PipePrefab, new Vector3(10,0,0),Quaternion.identity);
+            Instantiate(PipePrefab, new Vector3(10,5f,0),Quaternion.identity);
             Debug.Log("파이프 생성");
             _timer = 0f;
         }
