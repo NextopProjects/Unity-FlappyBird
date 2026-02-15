@@ -5,11 +5,13 @@ public class PlayerController : MonoBehaviour
 {
     private Rigidbody _rigidbody;
     public float jumpForce = 5f;
+    private GameManager _gameManager;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
+        _gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
     }
 
     // Update is called once per frame
@@ -28,7 +30,7 @@ public class PlayerController : MonoBehaviour
     void OnCollisionEnter(Collision collision)
     {
         // Debug.Log("CollisionEnter");
-        Time.timeScale = 0f;
+        _gameManager.GameOver();
     }
     //
     // void OnCollisionStay(Collision collision)
