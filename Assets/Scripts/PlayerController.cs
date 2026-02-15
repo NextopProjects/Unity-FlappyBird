@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -18,9 +19,30 @@ public class PlayerController : MonoBehaviour
 
     void OnJump()
     {
-        // 위로 이동에 대한 action
-        Debug.Log("Jump");
+        // 위로 이동에 대한 1action
+        // Debug.Log("Jump");
         _rigidbody.linearVelocity = Vector3.up * jumpForce;
         // _rigidbody.AddForce(Vector3.up * 5f, ForceMode.VelocityChange);
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        // Debug.Log("CollisionEnter");
+        Time.timeScale = 0f;
+    }
+    //
+    // void OnCollisionStay(Collision collision)
+    // {
+    //     Debug.Log("OnCollisionStay");
+    // }
+    //
+    // private void OnCollisionExit(Collision other)
+    // {
+    //     Debug.Log("OnCollisionExit");
+    // }
+
+    private void OnTriggerExit(Collider other)
+    {
+        Debug.Log("TODO: 점수 증가");
     }
 }
