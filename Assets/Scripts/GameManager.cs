@@ -5,38 +5,71 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI statsText;
     public Button restartButton;
+    
+    // AI 학습용 설정
+    public bool autoRestart = true;
+    public float restartDelay = 0.5f;
+    public float timeScale = 3f;
 
-    private int score = 0;
+    public int score = 0;
+    private bool isGameOver = false;
 
     void Start()
     {
-        scoreText.text = "Score: 0";
+        if (statsText != null)
+        {
+            statsText.text = "";
+        }
         restartButton.gameObject.SetActive(false);
         restartButton.onClick.AddListener(Restart);
+        isGameOver = false;
+        
+        Time.timeScale = timeScale;
+    }
+
+    void Update()
+    {
+        if (statsText != null)
+        {
+            AIAgent aiAgent = FindFirstObjectByType<AIAgent>();
+            if (aiAgent != null)
+            {
+                statsText.text = $"Score: {score}\n" +
+                                 $"Episode: {aiAgent.episodeCount}\n" +
+                                 $"Best Score: {aiAgent.bestScoreValue}\n" +
+                                 $"Epsilon: {aiAgent.epsilonValue:F3}\n" +
+                                 $"Q-States: {aiAgent.qTableSize}";
+            }
+        }
     }
 
     public void AddScore(int value = 1)
     {
         score += value;
-        scoreText.text = "Score: " + score;
     }
 
     public void GameOver()
     {
-        restartButton.gameObject.SetActive(true);
-        Time.timeScale = 0;
+        if (isGameOver) return;
+        isGameOver = true;
+        
+        if (autoRestart)
+        {
+            Invoke(nameof(Restart), restartDelay);
+        }
+        else
+        {
+            restartButton.gameObject.SetActive(true);
+            Time.timeScale = 0;
+        }
     }
 
     public void Restart()
     {
-        Time.timeScale = 1; // 시간 정상화
-        
-        // 현재 활성 씬 이름 가져오기
+        Time.timeScale = timeScale;
         string currentScene = SceneManager.GetActiveScene().name;
-
-        // 현재 씬 다시 로드
         SceneManager.LoadScene(currentScene);
     }
 }
