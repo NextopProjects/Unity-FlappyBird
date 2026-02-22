@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1423933597587138709}
   - component: {fileID: 4237880146011055641}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Pipe
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -60,7 +60,7 @@ GameObject:
   - component: {fileID: 6765256130137363764}
   - component: {fileID: 3714216011167672002}
   - component: {fileID: 5311340537234122404}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pipe_top
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -225,7 +225,7 @@ GameObject:
   - component: {fileID: 8112019444999751499}
   - component: {fileID: 7655364799182590536}
   - component: {fileID: 8414177501233846231}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: pipe_bottom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
