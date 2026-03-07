@@ -1,0 +1,12 @@
+[project]
+name = "unity-flappybird"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mlagents>=0.18.0",
+    "setuptools==81.0.0",
+    "torch>=2.10.0",
+    "torchvision>=0.25.0",
+]
