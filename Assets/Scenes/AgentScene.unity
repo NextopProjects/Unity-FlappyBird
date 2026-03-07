@@ -655,14 +655,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAgent
   jumpForce: 5
-  jumpCooldownTime: 0.5
+  decisionInterval: 0.05
   learningRate: 0.3
   discountFactor: 0.9
   initialEpsilon: 1
   surviveReward: 0.01
   pipePassReward: 1
   collisionPenalty: -1
-  gapProximityReward: 0.3
+  gapNearThreshold: 0.8
+  gapNearReward: 0.5
+  gapMidThreshold: 2
+  gapMidReward: 0.1
+  gapFarPenalty: -0.1
   maxYPosition: 8
   minYPosition: 2
   maxUpVelocity: 1
@@ -695,11 +699,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f75383ca6f4f3574d8be83fe18a55f77, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AgentManager
-  agent: {fileID: 577312556}
+  agent: {fileID: 0}
   infoText: {fileID: 1583374013}
   timeScale: 50
   minEpsilon: 0.05
-  epsilonDecayEpisodes: 5000
+  decayRate: 0.9999
 --- !u!4 &1017610168
 Transform:
   m_ObjectHideFlags: 0

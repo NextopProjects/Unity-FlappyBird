@@ -67,7 +67,8 @@ public class PlayerAgent : MonoBehaviour
     void Start()
     {
         _rigidbody    = GetComponent<Rigidbody>();
-        _agentManager = FindFirstObjectByType<AgentManager>();
+        _agentManager = AgentManager.Instance;
+        _agentManager.agent = this;
 
         _qLearning = new QLearning<(int, int, int)>(
             actionCount:    2,
