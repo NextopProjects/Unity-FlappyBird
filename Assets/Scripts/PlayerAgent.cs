@@ -58,8 +58,10 @@ public class PlayerAgent : MonoBehaviour
     private float _currentReward;
     private int   _currentScore;
     private float _timeSinceLastDecision;
+    private int   _stepCount = 0;
 
     public int Score => _currentScore;
+    public int StepCount => _stepCount;
 
     // ==============================
     // 생명주기
@@ -96,6 +98,8 @@ public class PlayerAgent : MonoBehaviour
 
     void Step()
     {
+        _stepCount++;
+        
         // 1. 보상 계산
         CalculateReward();
         _currentReward += surviveReward;
@@ -263,6 +267,8 @@ public class PlayerAgent : MonoBehaviour
         _currentScore          = 0;
         _timeSinceLastDecision = 0f;
 
+        _stepCount             = 0;
+        
         _currentState  = GetState();
         _currentAction = 0;
     }

@@ -79,6 +79,8 @@ public class AgentManager : MonoBehaviour
         Time.timeScale  = timeScale;
         _episodeCount   = 0;
         _initialEpsilon = agent.GetEpsilon();
+        
+        AgentEpisodeLogger.Instance.StartEpisode();
     }
 
     void Update()
@@ -96,9 +98,18 @@ public class AgentManager : MonoBehaviour
     /// </summary>
     public void EndEpisode()
     {
+        AgentEpisodeLogger.Instance.LogEpisode(
+            _episodeCount,
+            agent.StepCount,
+            agent.Score,
+            agent.GetEpsilon()
+        );
+
         _episodeCount++;
         DecayEpsilon();
         ResetEpisode();
+
+        AgentEpisodeLogger.Instance.StartEpisode();
     }
 
     /// <summary>
