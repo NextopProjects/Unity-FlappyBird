@@ -655,7 +655,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAgent
   jumpForce: 5
-  jumpCooldownTime: 0.2
+  jumpCooldownTime: 0.5
   learningRate: 0.3
   discountFactor: 0.9
   initialEpsilon: 1
@@ -697,10 +697,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentManager
   agent: {fileID: 577312556}
   infoText: {fileID: 1583374013}
-  timeScale: 10
+  timeScale: 50
   minEpsilon: 0.05
   epsilonDecayEpisodes: 5000
-  restoreThreshold: 500
 --- !u!4 &1017610168
 Transform:
   m_ObjectHideFlags: 0

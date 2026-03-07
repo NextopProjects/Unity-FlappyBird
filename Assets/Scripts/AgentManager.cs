@@ -35,6 +35,7 @@ public class AgentManager : MonoBehaviour
     // ========================================
     private int _episodeCount;
     private float _initialEpsilon;
+    private int _bestScore;
     
     // ========================================
     // 초기화
@@ -53,7 +54,10 @@ public class AgentManager : MonoBehaviour
     {
         if (infoText != null)
         {
-            infoText.text = $"Score: {agent.Score}\n" +
+            
+            _bestScore = _bestScore > agent.Score ?  _bestScore : agent.Score; 
+            infoText.text = $"BestScore: {_bestScore}\n" +
+                            $"Score: {agent.Score}\n" +
                             $"Episode: {_episodeCount}\n" +
                             $"Epsilon: {agent.GetEpsilon():F2}";
         }
