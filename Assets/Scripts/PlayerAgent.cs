@@ -41,19 +41,22 @@ public class PlayerAgent : MonoBehaviour
     private (int, int, int) _currentState;
     private int _currentAction;
     private float _currentReward;
-    private float _currentScore;
+    private int _currentScore;
     
     private float _timeSinceLastDecision;
     private int _stepCount = 0;
     
     private bool _isDead = false;
-    
+
+    public float Epsilon => _qLearning.Epsilon;
+    // public void  SetEpsilon(float value) => _qLearning.Epsilon = value;
+    public int Score => _currentScore;
     
     void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
 
-        _qLearning = new QLearning<(int,int,int)>(2,0.3f, 0.0f, 1f);
+        _qLearning = new QLearning<(int, int, int)>(2, learningRate, discountFactor, initialEpsilon);
         _initialPosition = _rigidbody.position;
     }
 
@@ -76,17 +79,66 @@ public class PlayerAgent : MonoBehaviour
         _stepCount++;
         
         // 1. 보상 계산
+        CalculateReward();
+        _currentReward += surviveReward;
         
         // 2. 다음 상태 예측
+        var nextState = GetState();
         
         // 3. 현재 상태의 상황을 Q-Table에 Update
+        _qLearning.Update(_currentState, _currentAction, 
+            (int)_currentReward * 100, nextState );
         
         // 4. Action 선택 + 너무 튀지 않도록 행동 제약도 처리
-        
+        _currentAction = _qLearning.GetAction(nextState);
+        _currentAction = ApplyActionConstraints(_currentAction); // 천장 하단 방지를 제한 장치
+
         // 5. 행동 실행
+        if (_currentAction == 1)
+        {
+            Jump();
+        }
         
         // 6. 현재 상태에 대한 것을 갱신
-        
+        _currentState  = nextState;
+        _currentReward = 0f;
+
+    }
+
+    int ApplyActionConstraints(int action)
+    {
+        float y = transform.position.y;
+        float velocityY = _rigidbody.linearVelocity.y;
+
+        if (y > maxYPosition || velocityY > maxUpVelocity) return 0;
+        if (y < minYPosition && velocityY < 0f) return 1;
+        return action;
+    } 
+
+    void CalculateReward()
+    {
+        GameObject closestPipe = FindClosestPipe();
+        if (closestPipe == null) return;
+
+        float gapCenterY = GetGapCenterY(closestPipe);
+        float absDy = Mathf.Abs(transform.position.y - gapCenterY);
+
+        // 플레이와 파이프의 Y 좌표의 거리 near 기준 작은 경우 해당 보상
+        if (absDy < gapNearThreshold) _currentReward += gapNearReward;
+        // 플레이와 파이프의 Y 좌표의 거리 mid 기준 작은 경우 해당 보상
+        else if (absDy < gapMidThreshold) _currentReward += gapMidReward;
+        // 너무 멀다 패널티
+        else _currentReward += gapFarPenalty;
+        // 최대한 가깝게 파이프 Y 좌표가 가까워지도록 유도
+    }
+
+    float GetGapCenterY(GameObject closestPipe)
+    {
+        float topY = closestPipe.transform.GetChild(0).position.y;
+        float bottomY = closestPipe.transform.GetChild(1).position.y;
+        return (topY - bottomY) / 2f;
+
+        return closestPipe.transform.GetChild(2).position.y;
     }
     
     // 게임 오버
@@ -96,8 +148,9 @@ public class PlayerAgent : MonoBehaviour
         _isDead = true;
         _currentReward = collisionPenalty;
         
-        // QLearning
-        // TODO: QLearning Qtable 게임오버에 대한 상태를 Update
+        _qLearning.Update(_currentState, _currentAction, 
+            (int)(_currentReward * 100), _currentState);
+        AgentManager.Instance.EndEpisode();
     }
     
     // 장애물 통과
@@ -130,19 +183,27 @@ public class PlayerAgent : MonoBehaviour
 
     // 파이프 갭의 중심의 Y거리의 차이
     // 파이프와 에이전트간의 X의 거리
-    (int, int) GetState()
+    (int, int, int) GetState()
     {
         GameObject closestPipe = FindClosestPipe();
-        float distY = 0f;
+
+        int dxBin = 0; // 인접한 파이프와 플레어이 간의 x 거리
+        int dyBin = 0; // 파이프의 중심저 플레어어의 y 걸
+        int velBin = Mathf.RoundToInt(_rigidbody.linearVelocity.y); // 현재 상태의 속도
+
         if (closestPipe != null)
         {
-            float gapCenterY = closestPipe.transform.position.y;
-            distY = Math.Abs(transform.position.y - gapCenterY);
+            float gapCenterY = GetGapCenterY(closestPipe);
             
+            float dx = closestPipe.transform.position.x - transform.position.x;
+            float dy = gapCenterY - transform.position.y;
             
-            // TODO: 260309 이어서 코드 작성해야하는 부분
+            dxBin = Mathf.RoundToInt(dx);
+            dyBin = Mathf.RoundToInt(dy * 2f);
+            
         }
-        return (0, 0);// TODO: 260309 이어서 코드 작성해야하는 부분
+        
+        return (dxBin, dyBin, velBin);
     }
 
     GameObject FindClosestPipe()

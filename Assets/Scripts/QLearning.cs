@@ -9,6 +9,7 @@ public class QLearning<TState>
     private float _learningRate; // 학습률 (a)
     private float _discountFactor; // 할인율 (y)
     private float _epsilon; // 탐험률 (e)
+    public float Epsilon { get => _epsilon; set => _epsilon = value; }
 
     private int _actionCount; //행동 개수 (stay, jump)
 
