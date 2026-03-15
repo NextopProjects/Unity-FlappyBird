@@ -365,9 +365,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AgentManager
   agent: {fileID: 577312556}
   infoText: {fileID: 1583374013}
-  timeScale: 1
+  timeScale: 50
   minEpsilon: 0.05
-  decayRate: 0.999
+  decayRate: 0.9994
 --- !u!4 &194547949
 Transform:
   m_ObjectHideFlags: 0
