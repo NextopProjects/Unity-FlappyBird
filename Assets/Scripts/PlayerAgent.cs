@@ -48,14 +48,16 @@ public class PlayerAgent : MonoBehaviour
     
     private bool _isDead = false;
 
-    public float Epsilon => _qLearning.Epsilon;
-    // public void  SetEpsilon(float value) => _qLearning.Epsilon = value;
+    public float Epsilon
+    {
+        get => _qLearning.Epsilon; set => _qLearning.Epsilon = value;
+    }
     public int Score => _currentScore;
     
-    void Start()
+    void Awake() 
     {
         _rigidbody = GetComponent<Rigidbody>();
-
+        AgentManager.Instance.agent = this;
         _qLearning = new QLearning<(int, int, int)>(2, learningRate, discountFactor, initialEpsilon);
         _initialPosition = _rigidbody.position;
     }
@@ -68,7 +70,7 @@ public class PlayerAgent : MonoBehaviour
         _timeSinceLastDecision += Time.fixedDeltaTime;
         if (_timeSinceLastDecision >= decisionInterval)
         {
-            // Step();
+            Step();
             _timeSinceLastDecision = 0f;
         }
     }

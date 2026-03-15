@@ -72,7 +72,7 @@ public class AgentManager : MonoBehaviour
     void DecayEpsilon()
     {
         float newEpsilon = _initialEpsilon * Mathf.Pow(decayRate,_episodeCount);
-        // agent.Epsilon = Mathf.Max(minEpsilon, newEpsilon);
+        agent.Epsilon = Mathf.Max(minEpsilon, newEpsilon);
     }
     
     
